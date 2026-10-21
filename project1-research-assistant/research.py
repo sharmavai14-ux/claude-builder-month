@@ -3,6 +3,9 @@ from datetime import datetime
 from pathlib import Path
 
 import anthropic
+from dotenv import load_dotenv
+
+load_dotenv()  # reads ANTHROPIC_API_KEY from the repo's .env file
 
 MODEL = "claude-opus-5-5"
 MAX_SEARCHES = 5

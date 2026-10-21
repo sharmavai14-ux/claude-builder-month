@@ -7,6 +7,9 @@ from datetime import datetime
 from html.parser import HTMLParser
 
 import anthropic
+from dotenv import load_dotenv
+
+load_dotenv()  # reads ANTHROPIC_API_KEY from the repo's .env file
 
 MODEL = "claude-sonnet-5-5"
 MAX_STEPS = 10  # safety limit: the most tool rounds allowed for one question

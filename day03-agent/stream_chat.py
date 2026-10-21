@@ -1,6 +1,9 @@
 import time
 
 import anthropic
+from dotenv import load_dotenv
+
+load_dotenv()  # reads ANTHROPIC_API_KEY from the repo's .env file
 
 MODEL = "claude-sonnet-5-5"
 SYSTEM_PROMPT = "You are a friendly, knowledgeable assistant. Answer clearly in plain English."

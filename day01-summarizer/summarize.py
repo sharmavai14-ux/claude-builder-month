@@ -3,6 +3,9 @@ import urllib.request
 from html.parser import HTMLParser
 
 import anthropic
+from dotenv import load_dotenv
+
+load_dotenv()  # reads ANTHROPIC_API_KEY from the repo's .env file
 
 MODEL = "claude-sonnet-5-5"
 
@@ -63,7 +66,7 @@ def main():
     page_text = fetch_page_text(url)
     print(f"Got {len(page_text):,} characters of text.\n")
 
-    client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from your environment
+    client = anthropic.Anthropic()
     response = client.messages.create(
         model=MODEL,
         max_tokens=2000,

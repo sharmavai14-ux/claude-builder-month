@@ -3,6 +3,9 @@ import urllib.request
 from html.parser import HTMLParser
 
 import anthropic
+from dotenv import load_dotenv
+
+load_dotenv()  # reads ANTHROPIC_API_KEY from the repo's .env file
 
 MODEL = "claude-sonnet-5-5"
 

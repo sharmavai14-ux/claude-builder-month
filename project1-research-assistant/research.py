@@ -1,15 +1,27 @@
+"""Research Assistant (Project 1).
+
+You type a question. Claude searches the web, reads what it finds,
+and writes a short report with its sources. The report is saved
+as a Markdown file in the "reports" folder, and a short summary is
+saved as a note in your Day 5 notes server.
+"""
+
+import asyncio
 import re
 from datetime import datetime
 from pathlib import Path
 
 import anthropic
 from dotenv import load_dotenv
+from mcp import ClientSession, StdioServerParameters
+from mcp.client.stdio import stdio_client
 
 load_dotenv()  # reads ANTHROPIC_API_KEY from the repo's .env file
 
 MODEL = "claude-opus-5-5"
 MAX_SEARCHES = 5
 REPORTS_DIR = Path(__file__).parent / "reports"
+NOTES_SERVER_FOLDER = Path(__file__).parent.parent / "day05-notes-mcp"
 
 # Prices in US dollars
 PRICE_PER_INPUT_TOKEN = 4.00 / 1_000_000
@@ -132,6 +144,71 @@ def save_report(question, pieces, sources):
     return path
 
 
+def find_title(report_text, question):
+    """Return the report's title (the line starting with "# "), or the question."""
+    for line in report_text.splitlines():
+        if line.startswith("# "):
+            return line[2:].strip()
+    return question
+
+
+def find_short_answer(report_text):
+    """Return the text under "## Short answer", up to the next heading."""
+    match = re.search(r"## Short answer\s*(.*?)(?=\n#|\Z)", report_text, re.DOTALL)
+    return match.group(1).strip() if match else report_text[:500].strip()
+
+
+async def add_note_with_mcp(title, body):
+    """Start the Day 5 notes server, call its add_note tool, return its reply."""
+    server = StdioServerParameters(
+        command="uv",
+        args=["run", "--directory", str(NOTES_SERVER_FOLDER), "notes_server.py"],
+    )
+    async with stdio_client(server) as (read, write):
+        async with ClientSession(read, write) as session:
+            await session.initialize()
+            result = await session.call_tool("add_note", {"title": title, "body": body})
+            return result.content[0].text
+
+
+def save_to_notes(question, pieces, sources, path):
+    """Save a short version of the report as a note. Never crash if it fails."""
+    report_text = "".join(piece.text for piece in pieces if piece.type == "text")
+    title = "Research: " + find_title(report_text, question)
+    body_lines = [find_short_answer(report_text), "", f"Question: {question}"]
+    body_lines += [f"Source: {url}" for _, url in sources]
+    body_lines.append(f"Full report: {path}")
+    if not NOTES_SERVER_FOLDER.exists():
+        return f"Not saved. Can't find the notes server folder: {NOTES_SERVER_FOLDER}"
+    try:
+        return asyncio.run(add_note_with_mcp(title, "\n".join(body_lines)))
+    except Exception:
+        return "Not saved. The notes server didn't answer. Check that Day 5 still works."
+
+
+def run_research(client, question, keep_note=True):
+    """Research one question from start to end. Return a summary of what happened."""
+    pieces, used = research(client, question)
+    sources = collect_sources(pieces)
+    searches = collect_searches(pieces)
+    path = save_report(question, pieces, sources)
+    note = save_to_notes(question, pieces, sources, path) if keep_note else "Not saved"
+
+    cost = (used["input"] * PRICE_PER_INPUT_TOKEN
+            + used["output"] * PRICE_PER_OUTPUT_TOKEN
+            + used["searches"] * PRICE_PER_SEARCH)
+
+    return {
+        "report_text": "".join(piece.text for piece in pieces if piece.type == "text"),
+        "sources": sources,
+        "searches": searches,
+        "path": path,
+        "note": note,
+        "used": used,
+        "cost": cost,
+    }
+
+
 def main():
     client = anthropic.Anthropic()
     question = input("What should I research? ").strip()
@@ -139,23 +216,18 @@ def main():
         print("You didn't type a question. Bye!")
         return
 
-    pieces, used = research(client, question)
-    sources = collect_sources(pieces)
-    searches = collect_searches(pieces)
-    path = save_report(question, pieces, sources)
-
-    cost = (used["input"] * PRICE_PER_INPUT_TOKEN
-            + used["output"] * PRICE_PER_OUTPUT_TOKEN
-            + used["searches"] * PRICE_PER_SEARCH)
+    result = run_research(client, question)
+    used = result["used"]
 
     print("\n--- Done ---")
-    print(f"Searches Claude made: {len(searches)}")
-    for query in searches:
+    print(f"Searches Claude made: {len(result['searches'])}")
+    for query in result["searches"]:
         print(f"  - {query}")
-    print(f"Sources quoted: {len(sources)}")
-    print(f"Report saved to: {path}")
+    print(f"Sources quoted: {len(result['sources'])}")
+    print(f"Report saved to: {result['path']}")
+    print(f"Note: {result['note']}")
     print(f"Tokens: {used['input']:,} in, {used['output']:,} out. "
-          f"Searches billed: {used['searches']}. Cost: about ${cost:.3f}")
+          f"Searches billed: {used['searches']}. Cost: about ${result['cost']:.3f}")
 
 
 if __name__ == "__main__":

@@ -1,0 +1,4 @@
+Ideas for my research assistant:
+- add a simple web page so friends can use it
+- email me a summary every morning
+Must try the Agent SDK for this.

@@ -1,0 +1,19 @@
+[project]
+name = "day09-notes-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Vaibhav Sharma", email = "vai.sharma14@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "claude-agent-sdk>=0.2.174",
+]
+
+[project.scripts]
+day09-notes-agent = "day09_notes_agent:main"
+
+[build-system]
+requires = ["uv_build>=0.13.0,<0.14.0"]
+build-backend = "uv_build"

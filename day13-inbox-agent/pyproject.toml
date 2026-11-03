@@ -1,0 +1,23 @@
+[project]
+name = "day13-inbox-agent"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Vaibhav Sharma", email = "vai.sharma14@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=2.4.0",
+    "claude-agent-sdk>=0.2.176",
+    "google-api-python-client>=2.201.0",
+    "google-auth-oauthlib>=1.5.0",
+    "python-dotenv>=1.2.4",
+]
+
+[project.scripts]
+day13-inbox-agent = "day13_inbox_agent:main"
+
+[build-system]
+requires = ["uv_build>=0.13.0,<0.14.0"]
+build-backend = "uv_build"

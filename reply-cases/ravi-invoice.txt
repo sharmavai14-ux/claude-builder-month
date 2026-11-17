@@ -1,0 +1,10 @@
+From: Ravi <ravi@example.com>
+Subject: Invoice for October
+
+Hi Vaibhav,
+
+Did you send invoice 204 for October yet? Our finance team needs it
+by Friday 6 November, or the payment moves to next month.
+
+Thanks,
+Ravi

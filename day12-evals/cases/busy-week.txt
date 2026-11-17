@@ -1,0 +1,5 @@
+Project check-in, Tuesday 27 October
+Ravi finished the first draft of the app screens.
+Meena will test the login page by Thursday 29 October.
+I will send the invoice to the client on Friday 30 October.
+We still don't know if the client wants a dark mode.

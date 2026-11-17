@@ -13,3 +13,4 @@ scheduled-log.txt
 reply-results/
 board.db
 *.db
+ids.json
